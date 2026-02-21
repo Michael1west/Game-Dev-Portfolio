@@ -15,6 +15,27 @@ public class Inventory : MonoBehaviour
         equipmentSlots = new ItemData[4];
     }
 
+    public bool HasItem(ItemData item)
+    {
+        for (int i = 0; i < equipmentSlots.Length; i++)
+        {
+            if (equipmentSlots[i] == item)
+            {
+                return true;
+            }   
+        }
+        return false;
+    }
+
+    public ItemData GetSlotItem(int index)
+    {
+        if (index >= 0 && index < equipmentSlots.Length)
+        {
+            return equipmentSlots[index];
+        }
+        return null;
+    }
+
     public bool AddItem(ItemData item)
     {
         for (int i = 0; i < equipmentSlots.Length; i++)
@@ -28,15 +49,6 @@ public class Inventory : MonoBehaviour
             }
         }
         return false;
-    }
-
-    public ItemData GetSlotItem(int index)
-    {
-        if (index >= 0 && index < equipmentSlots.Length)
-        {
-            return equipmentSlots[index];
-        }
-        return null;
     }
 
     public void EquipItem(int slot)

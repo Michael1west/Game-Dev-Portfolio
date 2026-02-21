@@ -24,7 +24,8 @@ public class InteractionDetector : MonoBehaviour
 
         if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hitInfo_, 3f))
         {
-            if (hitInfo_.collider.TryGetComponent(out IInteractable interactable))
+            IInteractable interactable = hitInfo_.collider.GetComponentInParent<IInteractable>();
+            if (interactable != null)
             {
                 currentInteractable = interactable;
                 promptText.text = currentInteractable.GetPromptText();
