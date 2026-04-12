@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class FirstPersonController : MonoBehaviour
+public class FirstPersonController : MonoBehaviour, IThreatTarget
 {
     [Header("Preferences")]
     [SerializeField] private Transform cameraTransform;
@@ -25,6 +25,12 @@ public class FirstPersonController : MonoBehaviour
     private float playerHeight = 2f;
     private float cameraHeight = 1.6f;
 
+    private MovementState movementState;
+
+    // IThreatTarget — exposes position and speed for demon detection
+    public Vector3 targetPosition => transform.position;
+    public MovementState currentMovementState => movementState;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -40,6 +46,7 @@ public class FirstPersonController : MonoBehaviour
     void Update()
     {
         HandleLook();
+        
     }
 
     void FixedUpdate()
@@ -61,6 +68,8 @@ public class FirstPersonController : MonoBehaviour
                 cameraTransform.localPosition = new Vector3(0f, cameraHeight, 0f);
             }
         }
+
+        UpdateMovementState();
     }
 
     private void HandleLook()
@@ -92,4 +101,28 @@ public class FirstPersonController : MonoBehaviour
             moveDirection.z * currentSpeed
             );
     }
+
+    private void UpdateMovementState()
+    {
+        if (playerInput.CrouchHeld && rb.linearVelocity.magnitude > 0.1f)
+        {
+            movementState = MovementState.Crouching;
+        }
+
+        else if (playerInput.SprintHeld && rb.linearVelocity.magnitude > 0.1f)
+        {
+            movementState = MovementState.Sprinting;
+        }
+
+        else if (rb.linearVelocity.magnitude > 0.1f)
+        {
+            movementState = MovementState.Walking;
+        }
+
+        else
+        {
+            movementState = MovementState.Idle;
+        }
+    }
+    
 }
