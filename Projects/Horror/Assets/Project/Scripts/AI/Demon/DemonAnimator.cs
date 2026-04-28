@@ -14,4 +14,9 @@ public class DemonAnimator : MonoBehaviour
         float smoothedSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime * 10f);
         animator.SetFloat("Speed", smoothedSpeed);
     }
+
+    public void TriggerBite()
+    {
+        animator.SetTrigger("Bite");
+    }
 }

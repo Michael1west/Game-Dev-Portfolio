@@ -14,10 +14,17 @@ public class DemonBrain : BehaviourTree
     protected override Node SetupTree()
     {
         DemonDetection detection = GetComponent<DemonDetection>();
+        DemonAnimator demonAnimator = GetComponent<DemonAnimator>();
         IThreatTarget target = player as IThreatTarget;
 
         Node root = new SelectorNode(new List<Node>
         {
+            new SequenceNode(new List<Node>
+            {
+                new CheckKillNode(transform, player.transform),
+                new DemonKillNode(agent, transform, player.transform, demonAnimator)
+            }),
+
             //Hunt
             new SequenceNode(new List<Node>
             {
