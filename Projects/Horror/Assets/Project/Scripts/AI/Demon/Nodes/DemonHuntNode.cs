@@ -3,24 +3,37 @@ using UnityEngine.AI;
 
 public class DemonHuntNode : ActionNode
 {
+    private const float LOSLostThreshold = 4f;
+
     private IThreatTarget target;
     private NavMeshAgent agent;
     private DemonBrain brain;
+    private DemonDetection detection;
 
 
-    public DemonHuntNode(NavMeshAgent agent, IThreatTarget target, DemonBrain brain)
+    public DemonHuntNode(NavMeshAgent agent, IThreatTarget target, DemonBrain brain, DemonDetection detection)
     {
         this.agent = agent;
         this.target = target;
         this.brain = brain;
+        this.detection = detection;
     }
 
     public override NodeState Evaluate()
     {
-        this.agent.speed = 5f;
+        // Escape transition — lost LOS for too long - Investigating
+        if (detection.TimeSinceLOSLost >= LOSLostThreshold)
+        {
+            brain.SetState(DemonState.Investigating, detection.LastKnownPosition);
+            State = NodeState.Failure;
+            return State;
+        }
+
+        // Hunt behaviour
+        agent.speed = 5f;
         agent.SetDestination(target.targetPosition);
+
         State = NodeState.Running;
-        brain.SetCurrentState("Hunt");
         return State;
     }
 }

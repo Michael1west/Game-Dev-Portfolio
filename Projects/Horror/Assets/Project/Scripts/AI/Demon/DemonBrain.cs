@@ -5,11 +5,15 @@ using UnityEngine.AI;
 public class DemonBrain : BehaviourTree
 {
     [Header("Debug")]
-    [SerializeField] private string currentState;
+    [SerializeField] private DemonState currentState = DemonState.Patrol;
 
     public NavMeshAgent agent;
     public FirstPersonController player;
-    public Transform[] restPoints;
+
+    private Vector3 investigationTarget;
+
+    public DemonState CurrentState => currentState;
+    public Vector3 InvestigationTarget => investigationTarget;
 
     protected override Node SetupTree()
     {
@@ -19,57 +23,42 @@ public class DemonBrain : BehaviourTree
 
         Node root = new SelectorNode(new List<Node>
         {
+            // Kill — top priority, distance-based interrupt
             new SequenceNode(new List<Node>
             {
                 new CheckKillNode(transform, player.transform),
                 new DemonKillNode(agent, transform, player.transform, demonAnimator)
             }),
 
-            //Hunt
+            // Hunting — sprint to player, escape if LOS lost too long
             new SequenceNode(new List<Node>
             {
-                new CheckHuntingNode(detection),
-                new DemonHuntNode(agent, target, this)
+                new CheckHuntingNode(this),
+                new DemonHuntNode(agent, target, this, detection)
             }),
 
-            //Alert
+             // Investigating — go to target, search, give up
             new SequenceNode(new List<Node>
             {
-                new CheckAlertNode(detection),
-                new DemonAlertNode(agent, detection, this)
+                new CheckInvestigatingNode(this),
+                new DemonInvestigateNode(agent, detection, this)
             }),
 
-            //Search
-            new SequenceNode(new List<Node>
-            {
-                new CheckSearchNode(detection),
-                new DemonSearchNode(agent, detection, this)
-            }),
-
-            //Roam
-            new SequenceNode(new List<Node>
-            {
-                new CheckRoamNode(detection),
-                new DemonRoamNode(agent, detection, this)
-            }),
-
-            //Retreat
-             new SequenceNode(new List<Node>
-            {
-                new CheckRetreatNode(detection),
-                new DemonRetreatNode(agent, detection, restPoints, this)
-            }),
-
-            //Wander
-            new DemonWanderNode(agent, this)
+            // Wander — fallback, watches suspicion to promote to Investigating
+            new DemonWanderNode(agent, this, detection)
 
         });
 
         return root;
     }
 
-    public void SetCurrentState(string state)
+    public void SetState(DemonState newState, Vector3? target = null)
     {
-        currentState = state;
+        currentState = newState;
+        if (target.HasValue)
+        {
+            investigationTarget = target.Value;
+        }
+        Debug.Log($"Demon state -> {newState}");
     }
 }

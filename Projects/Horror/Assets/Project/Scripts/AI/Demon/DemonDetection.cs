@@ -5,37 +5,38 @@ public class DemonDetection : MonoBehaviour
     [Header("Suspicion")]
     [SerializeField] private float suspicion;
     [SerializeField] private float minSuspicion = 10f;
-    [SerializeField] private float alertThreshold = 25f;
-    [SerializeField] private float huntThreshold = 60f;
+    [SerializeField] private float suspicionThreshold = 25f;
     [SerializeField] private bool seenPlayer = false;
     [SerializeField] private Vector3 lastKnownPosition;
     [SerializeField] private float suspicionDecayRate = 6f;
-    
 
     [Header("Visual Detection")]
     [SerializeField] private float fieldOfView = 90f;
     [SerializeField] private float detectionRange = 10f;
     [SerializeField] private float visualSuspicionRate = 12f;
-    [SerializeField] private float losBreakReduction = 10f;
-    private bool hasLineOfSight;
-    private bool hadLineOfSight; 
+    [SerializeField] private float losBreakReduction = 30f;
 
     [Header("Sound Detection")]
     [SerializeField] private float noiseRange = 20f;
     [SerializeField] private float crouchSuspicionRate = 10f;
     [SerializeField] private float walkSuspicionRate = 20f;
     [SerializeField] private float sprintSuspicionRate = 30f;
-    
-
-    private bool hasBeenAlerted = false;
-    private bool hasSearched = false;
-    private bool hasRoamed = false;
-
-    public bool HasBeenAlerted => hasBeenAlerted;
-    public bool HasSearched => hasSearched;
-    public bool HasRoamed => hasRoamed;
 
     private IThreatTarget target;
+
+    private bool hasLOSToPlayer;
+    private bool hadLOSToPlayer;
+    private float timeSinceLOSLost;
+
+    public bool HasLOSToPlayer => hasLOSToPlayer;
+    public float TimeSinceLOSLost => timeSinceLOSLost;
+
+    public Vector3 LastKnownPosition => lastKnownPosition;
+    public bool SeenPlayer => seenPlayer;
+
+    public float SuspicionThreshold => suspicionThreshold;
+    public float Suspicion => suspicion;
+
 
     void Start()
     {
@@ -44,8 +45,10 @@ public class DemonDetection : MonoBehaviour
 
     void Update()
     {
-        float effectiveDetectionRange = detectionRange + target.visibilityModifier;
+        // STAGE 1 — Determine if we have LOS to the player THIS FRAME.
+        hasLOSToPlayer = false;
 
+        float effectiveDetectionRange = detectionRange + target.visibilityModifier;
         float distance = Vector3.Distance(transform.position, target.targetPosition);
         float angle = Vector3.Angle(transform.forward, target.targetPosition - transform.position);
 
@@ -56,38 +59,36 @@ public class DemonDetection : MonoBehaviour
                 if (hit.collider.CompareTag("Player"))
                 {
                     seenPlayer = true;
-                    hasLineOfSight = true;
-                    lastKnownPosition = target.targetPosition;
-                    suspicion += visualSuspicionRate * Time.deltaTime;
-
-                    if (suspicion >= alertThreshold)
-                    {
-                        hasBeenAlerted = true;
-                    }
-                }
-                else
-                {
-                    hasLineOfSight = false;
+                    hasLOSToPlayer = true;
                 }
             }
         }
+
+        // STAGE 2 — Update the LOS-lost timer.
+
+        if (hasLOSToPlayer)
+        {
+            timeSinceLOSLost = 0f;
+            lastKnownPosition = target.targetPosition;
+        }
         else
         {
-            suspicion -= suspicionDecayRate * Time.deltaTime;
-            hasLineOfSight = false;
+            timeSinceLOSLost += Time.deltaTime;
         }
 
-        if (hadLineOfSight && !hasLineOfSight)
+        // STAGE 3 - Suspicion
+
+        // Visual
+
+        if (hasLOSToPlayer)
         {
-            suspicion -= losBreakReduction;
+            suspicion += visualSuspicionRate * Time.deltaTime;
         }
-        hadLineOfSight = hasLineOfSight;
 
-
+        // Sound
 
         if (distance < noiseRange)
         {
-
             switch (target.currentMovementState)
             {
                 case MovementState.Crouching:
@@ -100,9 +101,25 @@ public class DemonDetection : MonoBehaviour
                     suspicion += sprintSuspicionRate * Time.deltaTime;
                     break;
             }
+            lastKnownPosition = target.targetPosition;
         }
-        
 
+        // Decay
+        
+        if (!hasLOSToPlayer && distance >= noiseRange)
+        {
+            suspicion -= suspicionDecayRate * Time.deltaTime;
+        }
+
+        // LOS-break penalty
+
+        if (hadLOSToPlayer && !hasLOSToPlayer)
+        {
+            suspicion -= losBreakReduction;
+        }
+        hadLOSToPlayer = hasLOSToPlayer;
+
+        // Clamp
 
         if (seenPlayer)
         {
@@ -114,34 +131,4 @@ public class DemonDetection : MonoBehaviour
 
         } 
     }
-
-    public void ResetAlertMemory()
-    {
-        hasBeenAlerted = false;
-    }
-
-    public void SetHasSearched()
-    {
-        hasSearched = true;
-    }
-
-    public void ResetSearchMemory()
-    {
-        hasSearched = false;
-    }
-
-    public void SetHasRoamed()
-    {
-        hasRoamed = true;
-    }
-
-    public void ResetRoamMemory()
-    {
-        hasRoamed = false;
-    }
-
-    public bool IsAlert() => suspicion >= alertThreshold;
-    public bool IsHunting() => suspicion >= huntThreshold;
-    public Vector3 LastKnownPosition => lastKnownPosition;
-    public bool SeenPlayer => seenPlayer;
 }
