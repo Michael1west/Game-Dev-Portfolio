@@ -20,6 +20,7 @@ public class FirstPersonController : MonoBehaviour, IThreatTarget
     private Rigidbody rb;
     private PlayerInput playerInput;
     private CapsuleCollider playerCapsule;
+    private PlayerEquipmentHandler equipmentHandler;
     private LayerMask crouchCheckLayer;
     private float verticalRotation = 0f;
     private float playerHeight = 2f;
@@ -31,11 +32,14 @@ public class FirstPersonController : MonoBehaviour, IThreatTarget
     public Vector3 targetPosition => transform.position;
     public MovementState currentMovementState => movementState;
 
+    public float visibilityModifier => equipmentHandler.GetHeldComponent<ILightSource>()?.visibilityModifier ?? 0f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         playerInput = GetComponent<PlayerInput>();
         playerCapsule = GetComponent<CapsuleCollider>();
+        equipmentHandler = GetComponent<PlayerEquipmentHandler>();
         crouchCheckLayer = ~LayerMask.GetMask("Player");
 
         // Lock cursor to center screen

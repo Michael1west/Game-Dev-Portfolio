@@ -1,18 +1,23 @@
 using UnityEngine;
 
-public class Torch : MonoBehaviour, IEquippable
+public class Torch : MonoBehaviour, IEquippable, ILightSource
 {
+    [SerializeField] private float visibilityBonus = 15f;
+
     private Light torchLight;
     private bool torchOn = false;
+
+    public float visibilityModifier => torchOn ? visibilityBonus : 0f;
+
 
     void Start()
     {
         torchLight = GetComponentInChildren<Light>();
     }
 
-    public void OnEquip() 
+    public void OnEquip()
     {
-    
+
     }
     public void OnUnequip()
     {
@@ -24,7 +29,7 @@ public class Torch : MonoBehaviour, IEquippable
     }
     public void OnDrop()
     {
-        
+
     }
     public void OnUse()
     {

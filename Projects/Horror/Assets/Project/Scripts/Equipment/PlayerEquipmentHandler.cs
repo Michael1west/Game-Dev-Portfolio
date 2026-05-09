@@ -9,6 +9,12 @@ public class PlayerEquipmentHandler : MonoBehaviour
     private PlayerInput playerInput;
     private Inventory inventory;
 
+    public T GetHeldComponent<T>() where T : class
+    {
+        if (currentSpawnedEquipment == null) return null;
+        return currentSpawnedEquipment.GetComponent<T>();
+    }
+
     void Start()
     {
         playerInput = GetComponent<PlayerInput>();

@@ -44,12 +44,14 @@ public class DemonDetection : MonoBehaviour
 
     void Update()
     {
+        float effectiveDetectionRange = detectionRange + target.visibilityModifier;
+
         float distance = Vector3.Distance(transform.position, target.targetPosition);
         float angle = Vector3.Angle(transform.forward, target.targetPosition - transform.position);
 
-        if (distance < detectionRange && angle < fieldOfView)
+        if (distance < effectiveDetectionRange && angle < fieldOfView)
         {
-            if (Physics.Raycast(transform.position, target.targetPosition - transform.position, out RaycastHit hit, detectionRange))
+            if (Physics.Raycast(transform.position, target.targetPosition - transform.position, out RaycastHit hit, effectiveDetectionRange))
             {
                 if (hit.collider.CompareTag("Player"))
                 {
