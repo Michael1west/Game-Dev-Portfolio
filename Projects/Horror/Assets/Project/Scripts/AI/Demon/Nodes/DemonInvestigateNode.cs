@@ -21,8 +21,6 @@ public class DemonInvestigateNode : ActionNode
 
     public override NodeState Evaluate()
     {
-        Debug.Log($"Investigate evaluating. LOS={detection.HasLOSToPlayer}, hasArrived={hasArrived}, searchTimer={searchTimer:F2}");
-
         // Transition: spotted player - Hunting
         if (detection.HasLOSToPlayer)
         {

@@ -1,31 +1,21 @@
-using UnityEngine;
-
-public class CheckKillNode : ConditionNode
+public class CheckKillNode : Node
 {
-    private Transform demon;
-    private Transform player;
-    private const float KillRange = 1.5f;
+    private DemonBrain brain;
 
-    public CheckKillNode(Transform demon, Transform player)
+    public CheckKillNode(DemonBrain brain)
     {
-        this.demon = demon;
-        this.player = player;
-
+        this.brain = brain;
     }
 
     public override NodeState Evaluate()
     {
-        float distance = Vector3.Distance(demon.position, player.position);
-
-        if (distance <= KillRange)
+        if (brain.CurrentState == DemonState.Killing)
         {
             State = NodeState.Success;
             return State;
         }
-        else
-        {
-            State = NodeState.Failure;
-            return State;
-        }
+
+        State = NodeState.Failure;
+        return State;
     }
 }

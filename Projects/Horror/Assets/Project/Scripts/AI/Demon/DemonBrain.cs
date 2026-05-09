@@ -23,11 +23,11 @@ public class DemonBrain : BehaviourTree
 
         Node root = new SelectorNode(new List<Node>
         {
-            // Kill — top priority, distance-based interrupt
+            // Kill — top priority
             new SequenceNode(new List<Node>
             {
-                new CheckKillNode(transform, player.transform),
-                new DemonKillNode(agent, transform, player.transform, demonAnimator)
+                new CheckKillNode(this),
+                new DemonKillNode(agent, transform, player.transform, demonAnimator, this)
             }),
 
             // Hunting — sprint to player, escape if LOS lost too long

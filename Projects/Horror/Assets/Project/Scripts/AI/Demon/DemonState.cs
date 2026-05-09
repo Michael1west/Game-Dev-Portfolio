@@ -2,5 +2,6 @@ public enum DemonState
 {
     Patrol,
     Investigating,
-    Hunting
+    Hunting,
+    Killing
 }
